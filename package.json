@@ -2,17 +2,19 @@
   "name": "aurelia-command",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "babel": "^5.4.7",
     "bluebird": "^2.9.26",
-    "gulp": "^3.8.11",
-    "gulp-babel": "^5.1.0",
     "lodash": "^3.9.3"
+  },
+  "devDependencies": {
+    "babel": "^5.4.7",
+    "gulp": "^3.8.11",
+    "gulp-babel": "^5.1.0"
   }
 }
