@@ -297,7 +297,7 @@ var Command = (function () {
         var option = this.flags[index];
         var padding = (0, _lodashStringRepeat2['default'])(' ', program.maxFlags - option._flags.length);
 
-        log('init  '.green + option._flags.cyan + padding, option.required ? ('(', 'required'.red + ')') : '(' + 'optional'.green + ')', option.description);
+        log(this.commandId.green + ' ' + option._flags.cyan + padding, option.required ? ('(', 'required'.red + ')') : '(' + 'optional'.green + ')', option.description);
       }
       log();
     }
