@@ -1,12 +1,12 @@
 {
   "name": "aurelia-command",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.1.1",
+  "description": "Command line interface API for aurelia-cli",
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "JoelCox <joelcox.io>",
   "license": "ISC",
   "dependencies": {
     "bluebird": "^2.9.26",
@@ -16,5 +16,18 @@
     "babel": "^5.4.7",
     "gulp": "^3.8.11",
     "gulp-babel": "^5.1.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joelcoxokc/aurelia-command.git"
+  },
+  "keywords": [
+    "aurelia",
+    "cli",
+    "command"
+  ],
+  "bugs": {
+    "url": "https://github.com/joelcoxokc/aurelia-command/issues"
+  },
+  "homepage": "https://github.com/joelcoxokc/aurelia-command"
 }

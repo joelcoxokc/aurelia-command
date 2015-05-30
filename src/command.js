@@ -1,8 +1,8 @@
-let argv, env, program;
 import repeat from 'lodash/string/repeat';
 import Option from './option';
-var Promise      = require('bluebird');
+import Promise from 'bluebird';
 
+let argv, env, program;
 export default class Command{
 
   /*
@@ -43,7 +43,7 @@ export default class Command{
 
   /*
       Create context
-      @param Construction {Constructor} The CustomCommand Constructor.
+      @param ClassConstruction {Class Constructor} The CustomCommand Constructor.
       @param commandId    {String}      The name of the command;
    */
   createContext (ClassConstruction, commandId){
@@ -66,12 +66,18 @@ export default class Command{
     }.bind(this));
   }
 
+  /*
+      Set options on the ClassConstruction.__flags for later parsing
+   */
   option(...args){
     var self = this;
     this.context._flags.push(new Option(this.context, args));
     return this;
   }
 
+  /*
+      Set args on the ClassConstruction.__args for later parsing
+   */
   arg(str) {
     var name = str.match(/(\w+)/)[0];
     this.context.__args = this.context.__args || {};
@@ -79,6 +85,9 @@ export default class Command{
     return this;
   }
 
+  /*
+      Set the alias on the ClassConstruction.alias
+   */
   alias(str) {
     this.context._alias = str;
     if ((argv._[0] === this.context.alias) && argv._[0] !== this.context.commandId) {
@@ -87,11 +96,22 @@ export default class Command{
     return this;
   }
 
+  /*
+      Set the description on the ClassConstruction._description
+   */
   description(text) {
-    this.context.description = text;
+    this.context._description = text;
     return this;
   }
 
+  /*
+      Parse the context
+      Run   instance.canExecute()
+      then  instance.beforAction()
+      then  instance.action()
+      then  instance.afterAction()
+      catch instance.onError()
+   */
   _runAction(){
     let self     = this;
     let instance = this.parse();
@@ -115,6 +135,10 @@ export default class Command{
       });
   }
 
+  /*
+      Run help
+      @param {Boolean} isAll run a separate log if the all --help is executed
+   */
   _runHelp(isAll) {
     var self = this;
     let instance = this.parse();
