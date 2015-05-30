@@ -11,8 +11,8 @@ export function command(name) {
 
 export function option(...args) {
   return function(ClassConstruction) {
-    ClassConstruction._flags = ClassConstruction._flags   || {};
-    ClassConstruction._flags[args[0]] = new Option(ClassConstruction, args);
+    ClassConstruction._flags = ClassConstruction._flags   || [];
+    ClassConstruction._flags.push(new Option(ClassConstruction, args));
     return ClassConstruction;
   };
 }

@@ -20,10 +20,9 @@ var Option = (function () {
   function Option(command, options) {
     _classCallCheck(this, Option);
 
-    this.name = options[0];
-    this._flags = options[1];
-    this.description = options[2];
-    this._parseFn = options[3];
+    this._flags = options[0];
+    this.description = options[0];
+    this._parseFn = options[0];
     this.flags = {};
     this.flags = {
       bool: undefined,
@@ -42,23 +41,39 @@ var Option = (function () {
       return /^--no-/.test(this._flags);
     }
   }, {
-    key: 'value',
+    key: 'isLong',
     get: function () {
-      return argv[this.name] || argv[this.flags.long] || argv[this.flags.short] || argv[this.flags._flags];
+      return /--\w+/.test(this._flags);
+    }
+  }, {
+    key: 'isShort',
+    get: function () {
+      return /^-\w+/.test(this._flags);
     }
   }, {
     key: 'parse',
     value: function parse() {
       if (this.isBool) {
-        this.flags.bool = this.name;
-      } else {
-        this.flags.long = this._flags.match(/\-\-(\w+)/)[1];
-        this.flags.short = this._flags.match(/^\-(\w+)/)[1];
+        this.name = this._flags.match(/--no-(\w+)/)[1];
+        this.flags.bool = this._flags;
+      } else if (this.isLong) {
+        var key = this._flags.match(/\-\-(\w+)/);
+        this.flags.long = key[0];
+        this.name = key[1];
       }
-
-      if (this.flags.short && argv[this.flags.short]) {
-        argv[this.name] = this.value;
+      if (this.isShort) {
+        var key = this._flags.match(/^-(\w+)/);
+        this.flags.short = key[0];
+        if (!this.name) {
+          this.name = key[1];
+        } else {
+          this.alias = key[1];
+          if (argv[this.alias]) {
+            argv[this.name] = argv[this.alias];
+          }
+        }
       }
+      this.value = argv[this.name];
 
       this._parseFn = this._parseFn || function (c) {
         return c;

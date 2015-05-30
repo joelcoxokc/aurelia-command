@@ -50,7 +50,7 @@ export default class Command{
 
     ClassConstruction.commandId = ClassConstruction.commandId || commandId;
     ClassConstruction.argv      = ClassConstruction.argv      || {_:[]};
-    ClassConstruction._flags    = ClassConstruction._flags    || {};
+    ClassConstruction._flags    = ClassConstruction._flags    || [];
     ClassConstruction._args     = ClassConstruction._args     || argv._.slice(1) || [];
     ClassConstruction.options   = ClassConstruction.options   || {};
     ClassConstruction._inject   = ClassConstruction._inject   || [];
@@ -68,7 +68,7 @@ export default class Command{
 
   option(...args){
     var self = this;
-    this.context._flags[args[0]] = new Option(this.context, args);
+    this.context._flags.push(new Option(this.context, args));
     return this;
   }
 
@@ -160,15 +160,14 @@ export default class Command{
     let argvArgs = argv._.slice(1);
 
     for (let index in __args) {
-
       let argStr     = __args[index];
       let argName    =  argStr.match(/(\w+)/)[0];
       let isRequired = /</.test(argStr);
       let isOptional = /\[/.test(argStr);
-      let argValue   = __args.shift();
+      let argValue   = argvArgs.shift();
 
       if (argValue) {
-        command.args[argName] = argValue;
+        command.argv[argName] = argValue;
         command.argv._.push(argValue);
       }
       command._argString = command._argString || '';
@@ -176,10 +175,11 @@ export default class Command{
     }
 
     // parse FLAGS
-    for(let flagName in this.context._flags) {
-      let flag = this.context._flags[flagName].parse();
-      command.flags[flagName]   = flag;
-      command.options[flagName] = flag.value;
+    for(let index in this.context._flags) {
+      let flag = this.context._flags[index].parse();
+      command.flags[flag.name]   = flag;
+      command.options[flag.name] = flag.value;
+      command.argv[flag.name] = flag.value;
     }
 
     // use or add canExecute

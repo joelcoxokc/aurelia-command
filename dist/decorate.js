@@ -34,8 +34,8 @@ function option() {
   }
 
   return function (ClassConstruction) {
-    ClassConstruction._flags = ClassConstruction._flags || {};
-    ClassConstruction._flags[args[0]] = new _option2['default'](ClassConstruction, args);
+    ClassConstruction._flags = ClassConstruction._flags || [];
+    ClassConstruction._flags.push(new _option2['default'](ClassConstruction, args));
     return ClassConstruction;
   };
 }

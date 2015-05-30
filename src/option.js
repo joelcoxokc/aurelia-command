@@ -5,10 +5,9 @@ let argv = process.AURELIA.argv;
 export default class Option{
 
   constructor(command, options){
-    this.name         = options[0];
-    this._flags       = options[1];
-    this.description  = options[2];
-    this._parseFn     = options[3];
+    this._flags       = options[0];
+    this.description  = options[0];
+    this._parseFn     = options[0];
     this.flags = {};
     this.flags = {
         bool : undefined
@@ -24,23 +23,37 @@ export default class Option{
   get isBool(){
     return /^--no-/.test(this._flags);
   }
+  get isLong() {
+    return /--\w+/.test(this._flags);
+  }
 
-  get value() {
-    return argv[this.name] || argv[this.flags.long] || argv[this.flags.short] || argv[this.flags._flags];
+  get isShort() {
+    return /^-\w+/.test(this._flags);
   }
 
   parse() {
     if (this.isBool) {
-      this.flags.bool = this.name;
+      this.name = this._flags.match(/--no-(\w+)/)[1];
+      this.flags.bool = this._flags;
     }
-    else {
-      this.flags.long  = this._flags.match(/\-\-(\w+)/)[1];
-      this.flags.short = this._flags.match(/^\-(\w+)/)[1];
+    else if (this.isLong) {
+      let key = this._flags.match(/\-\-(\w+)/);
+      this.flags.long  = key[0];
+      this.name = key[1];
     }
-
-    if (this.flags.short && argv[this.flags.short]) {
-      argv[this.name] = this.value;
+    if (this.isShort) {
+      let key = this._flags.match(/^-(\w+)/);
+      this.flags.short = key[0];
+      if (!this.name) {
+        this.name = key[1];
+      } else {
+        this.alias = key[1];
+        if (argv[this.alias]) {
+          argv[this.name] = argv[this.alias];
+        }
+      }
     }
+    this.value = argv[this.name];
 
     this._parseFn = this._parseFn || function(c){return c;};
 

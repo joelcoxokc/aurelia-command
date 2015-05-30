@@ -74,7 +74,7 @@ var Command = (function () {
 
       ClassConstruction.commandId = ClassConstruction.commandId || commandId;
       ClassConstruction.argv = ClassConstruction.argv || { _: [] };
-      ClassConstruction._flags = ClassConstruction._flags || {};
+      ClassConstruction._flags = ClassConstruction._flags || [];
       ClassConstruction._args = ClassConstruction._args || argv._.slice(1) || [];
       ClassConstruction.options = ClassConstruction.options || {};
       ClassConstruction._inject = ClassConstruction._inject || [];
@@ -99,7 +99,7 @@ var Command = (function () {
       }
 
       var self = this;
-      this.context._flags[args[0]] = new _option2['default'](this.context, args);
+      this.context._flags.push(new _option2['default'](this.context, args));
       return this;
     }
   }, {
@@ -181,15 +181,14 @@ var Command = (function () {
       var argvArgs = argv._.slice(1);
 
       for (var index in __args) {
-
         var argStr = __args[index];
         var argName = argStr.match(/(\w+)/)[0];
         var isRequired = /</.test(argStr);
         var isOptional = /\[/.test(argStr);
-        var argValue = __args.shift();
+        var argValue = argvArgs.shift();
 
         if (argValue) {
-          command.args[argName] = argValue;
+          command.argv[argName] = argValue;
           command.argv._.push(argValue);
         }
         command._argString = command._argString || '';
@@ -197,10 +196,11 @@ var Command = (function () {
       }
 
       // parse FLAGS
-      for (var flagName in this.context._flags) {
-        var flag = this.context._flags[flagName].parse();
-        command.flags[flagName] = flag;
-        command.options[flagName] = flag.value;
+      for (var index in this.context._flags) {
+        var flag = this.context._flags[index].parse();
+        command.flags[flag.name] = flag;
+        command.options[flag.name] = flag.value;
+        command.argv[flag.name] = flag.value;
       }
 
       // use or add canExecute
