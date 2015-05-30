@@ -268,7 +268,7 @@ export default class Command{
       let option = this.flags[index];
       let padding = repeat(' ', program.maxFlags - option._flags.length);
 
-      log('init  '.green+option._flags.cyan + padding, option.required ? ('(','required'.red+')') : ('('+'optional'.green+')'), option.description);
+      log(this.commandId.green +' '+option._flags.cyan + padding, option.required ? ('(','required'.red+')') : ('('+'optional'.green+')'), option.description);
     }
     log();
   }
