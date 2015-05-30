@@ -18,11 +18,13 @@ var _option = require('./option');
 
 var _option2 = _interopRequireDefault(_option);
 
+var _bluebird = require('bluebird');
+
+var _bluebird2 = _interopRequireDefault(_bluebird);
+
 var argv = undefined,
     env = undefined,
     program = undefined;
-
-var Promise = require('bluebird');
 
 var Command = (function () {
 
@@ -67,7 +69,7 @@ var Command = (function () {
 
     /*
         Create context
-        @param Construction {Constructor} The CustomCommand Constructor.
+        @param ClassConstruction {Class Constructor} The CustomCommand Constructor.
         @param commandId    {String}      The name of the command;
      */
     value: function createContext(ClassConstruction, commandId) {
@@ -93,6 +95,10 @@ var Command = (function () {
     }
   }, {
     key: 'option',
+
+    /*
+        Set options on the ClassConstruction.__flags for later parsing
+     */
     value: function option() {
       for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
         args[_key] = arguments[_key];
@@ -104,6 +110,10 @@ var Command = (function () {
     }
   }, {
     key: 'arg',
+
+    /*
+        Set args on the ClassConstruction.__args for later parsing
+     */
     value: function arg(str) {
       var name = str.match(/(\w+)/)[0];
       this.context.__args = this.context.__args || {};
@@ -112,6 +122,10 @@ var Command = (function () {
     }
   }, {
     key: 'alias',
+
+    /*
+        Set the alias on the ClassConstruction.alias
+     */
     value: function alias(str) {
       this.context._alias = str;
       if (argv._[0] === this.context.alias && argv._[0] !== this.context.commandId) {
@@ -121,17 +135,30 @@ var Command = (function () {
     }
   }, {
     key: 'description',
+
+    /*
+        Set the description on the ClassConstruction._description
+     */
     value: function description(text) {
-      this.context.description = text;
+      this.context._description = text;
       return this;
     }
   }, {
     key: '_runAction',
+
+    /*
+        Parse the context
+        Run   instance.canExecute()
+        then  instance.beforAction()
+        then  instance.action()
+        then  instance.afterAction()
+        catch instance.onError()
+     */
     value: function _runAction() {
       var self = this;
       var instance = this.parse();
 
-      return Promise.resolve().then(function () {
+      return _bluebird2['default'].resolve().then(function () {
         return instance.canExecute.call(instance, instance.argv, instance.options);
       }).then(function (canExecute) {
         if (canExecute) return instance.beforeAction.call(instance, instance.argv, instance.options);
@@ -145,10 +172,15 @@ var Command = (function () {
     }
   }, {
     key: '_runHelp',
+
+    /*
+        Run help
+        @param {Boolean} isAll run a separate log if the all --help is executed
+     */
     value: function _runHelp(isAll) {
       var self = this;
       var instance = this.parse();
-      return Promise.resolve().then(function () {
+      return _bluebird2['default'].resolve().then(function () {
         return isAll ? self._allHelp.call(instance, console.log, instance.argv, instance.options) : instance.help.call(instance, console.log, instance.argv, instance.options);
       });
     }
@@ -260,12 +292,12 @@ var Command = (function () {
     key: '_allHelp',
     value: function _allHelp(log, argv, options) {
       log();
-      log('@%s %s %s', this.commandId.green, this._argString || '', this.description || '');
+      log('%s %s %s', this.commandId.green, this._argString || '', this.description || '');
       for (var index in this.flags) {
         var option = this.flags[index];
         var padding = (0, _lodashStringRepeat2['default'])(' ', program.maxFlags - option._flags.length);
 
-        log('    ' + option._flags.cyan + padding, option.required ? ('(', 'required'.red + ')') : '(' + 'optional'.green + ')', option.description);
+        log('init  '.green + option._flags.cyan + padding, option.required ? ('(', 'required'.red + ')') : '(' + 'optional'.green + ')', option.description);
       }
       log();
     }

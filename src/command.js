@@ -263,12 +263,12 @@ export default class Command{
 
   _allHelp(log, argv, options) {
     log();
-    log('@%s %s %s', this.commandId.green, (this._argString || ''), (this.description || ''));
+    log('%s %s %s', this.commandId.green, (this._argString || ''), (this.description || ''));
     for (let index in this.flags) {
       let option = this.flags[index];
       let padding = repeat(' ', program.maxFlags - option._flags.length);
 
-      log('    '+option._flags.cyan + padding, option.required ? ('(','required'.red+')') : ('('+'optional'.green+')'), option.description);
+      log('init  '.green+option._flags.cyan + padding, option.required ? ('(','required'.red+')') : ('('+'optional'.green+')'), option.description);
     }
     log();
   }

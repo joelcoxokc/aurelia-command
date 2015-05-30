@@ -6,8 +6,8 @@ export default class Option{
 
   constructor(command, options){
     this._flags       = options[0];
-    this.description  = options[0];
-    this._parseFn     = options[0];
+    this.description  = options[1];
+    this._parseFn     = options[2];
     this.flags = {};
     this.flags = {
         bool : undefined
