@@ -151,13 +151,15 @@ export default class Command{
   parse(){
     let injectable = [];
     for (let inst in this.context._inject) {
-      injectable.push(new this.context._inject[inst]());
+      if (typeof this.context._inject[inst] === 'function') {
+        injectable.push(new this.context._inject[inst]());
+      } else {
+        injectable.push(this.context._inject[inst]);
+      }
     }
     let ConstructedCommand = this.context.bind.apply( this.context ,
         [
             this.context.prototype
-          , program.config
-          , program.logger
 
         ].concat(injectable) );
 

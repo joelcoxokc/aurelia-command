@@ -77,9 +77,14 @@ var Program = (function (_EventEmitter) {
   }, {
     key: 'register',
     value: function register(Construction) {
+      for (var _len = arguments.length, inject = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        inject[_key - 1] = arguments[_key];
+      }
+
       if (Construction.register && typeof Construction.register === 'function') {
         Construction.register(this.command.bind(this, Construction));
       }
+      Construction._inject = inject;
       this.aliases[Construction.alias] = Construction.commandId;
     }
   }, {

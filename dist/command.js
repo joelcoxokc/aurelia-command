@@ -191,9 +191,13 @@ var Command = (function () {
     value: function parse() {
       var injectable = [];
       for (var inst in this.context._inject) {
-        injectable.push(new this.context._inject[inst]());
+        if (typeof this.context._inject[inst] === 'function') {
+          injectable.push(new this.context._inject[inst]());
+        } else {
+          injectable.push(this.context._inject[inst]);
+        }
       }
-      var ConstructedCommand = this.context.bind.apply(this.context, [this.context.prototype, program.config, program.logger].concat(injectable));
+      var ConstructedCommand = this.context.bind.apply(this.context, [this.context.prototype].concat(injectable));
 
       // Create The instance
       //////////////////////
