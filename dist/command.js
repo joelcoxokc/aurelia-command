@@ -232,7 +232,7 @@ var Command = (function () {
         }
 
         if (isRequired && !argValue) {
-          return _bluebird2['default'].reject({ msg: ' ' + argName + ' Argument [' + index + '] is Required!', type: 'err' });
+          return { msg: ' ' + argName + ' Argument [' + index + '] is Required!', type: 'err' };
         }
         command._argString = command._argString || '';
         command._argString += ' ' + argStr;
@@ -297,12 +297,12 @@ var Command = (function () {
     key: '_allHelp',
     value: function _allHelp(log, argv, options) {
       log();
-      log('%s %s %s', this.commandId.green, this._argString || '', this.description || '');
+      log('%s %s %s', this.commandId, this._argString || '', this.description || '');
       for (var index in this.flags) {
         var option = this.flags[index];
         var padding = (0, _lodashStringRepeat2['default'])(' ', program.maxFlags - option._flags.length);
 
-        log(this.commandId.green + ' ' + option._flags.cyan + padding, option.required ? ('(', 'required'.red + ')') : '(' + 'optional'.green + ')', option.description);
+        log(this.commandId + ' ' + option._flags.cyan + padding, option.required ? ('(', 'required'.red + ')') : '(' + 'optional'.green + ')', option.description);
       }
       log();
     }

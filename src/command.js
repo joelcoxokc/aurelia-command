@@ -197,7 +197,7 @@ export default class Command{
       }
 
       if (isRequired && !argValue) {
-        return Promise.reject({msg: ' '+argName+' Argument ['+index+'] is Required!', type:'err'});
+        return {msg: ' '+argName+' Argument ['+index+'] is Required!', type:'err'};
       }
       command._argString = command._argString || '';
       command._argString += ' ' + argStr;
@@ -252,12 +252,12 @@ export default class Command{
 
   _allHelp(log, argv, options) {
     log();
-    log('%s %s %s', this.commandId.green, (this._argString || ''), (this.description || ''));
+    log('%s %s %s', this.commandId, (this._argString || ''), (this.description || ''));
     for (let index in this.flags) {
       let option = this.flags[index];
       let padding = repeat(' ', program.maxFlags - option._flags.length);
 
-      log(this.commandId.green +' '+option._flags.cyan + padding, option.required ? ('(','required'.red+')') : ('('+'optional'.green+')'), option.description);
+      log(this.commandId +' '+option._flags.cyan + padding, option.required ? ('(','required'.red+')') : ('('+'optional'.green+')'), option.description);
     }
     log();
   }
