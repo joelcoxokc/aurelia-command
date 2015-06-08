@@ -49,7 +49,7 @@ export default class Command{
   createContext (ClassConstruction, commandId){
 
     ClassConstruction.commandId = ClassConstruction.commandId || commandId;
-    ClassConstruction.argv      = ClassConstruction.argv      || {_:[]};
+    ClassConstruction.argv      = ClassConstruction.argv      || argv;
     ClassConstruction._flags    = ClassConstruction._flags    || [];
     ClassConstruction._args     = ClassConstruction._args     || argv._.slice(1) || [];
     ClassConstruction.options   = ClassConstruction.options   || {};
@@ -78,10 +78,8 @@ export default class Command{
   /*
       Set args on the ClassConstruction.__args for later parsing
    */
-  arg(str) {
-    var name = str.match(/(\w+)/)[0];
-    this.context.__args = this.context.__args || {};
-    this.context.__args[name] = str;
+  args(...args) {
+    this.context.__args = this.context.__args || args;
     return this;
   }
 
@@ -118,20 +116,20 @@ export default class Command{
 
     return Promise.resolve()
       .then(function(){
-        return instance.canExecute.call(instance, instance.argv, instance.options);
+        return instance.canExecute.call(instance, instance.args, instance.options);
       })
       .then(function(canExecute) {
         if (canExecute)
-          return instance.beforeAction.call(instance, instance.argv, instance.options);
+          return instance.beforeAction.call(instance, instance.args, instance.options);
       })
       .then(function(before) {
-        return instance.action.call(instance, instance.argv, instance.options, before);
+        return instance.action.call(instance, instance.args, instance.options, before);
       })
       .then(function(result) {
-        return instance.afterAction.call(instance, instance.argv, instance.options, result);
+        return instance.afterAction.call(instance, instance.args, instance.options, result);
       })
       .catch(function(result){
-        return instance.onError.call(instance, instance.argv, instance.options, result);
+        return instance.onError.call(instance, instance.args, instance.options, result);
       });
   }
 
@@ -175,24 +173,29 @@ export default class Command{
     command.options   = {};
     command.flags     = {};
     command.argv      = this.context.argv;
-    command.args      = {};
+    command.args      = {_:[]};
+
+    command.argv._.shift();
 
 
     // Apply args
 
-    let __args   = this.context._args;
-    let argvArgs = argv._.slice(1);
+    let argvArgs = this.context._args;
 
-    for (let index in __args) {
-      let argStr     = __args[index];
-      let argName    =  argStr.match(/(\w+)/)[0];
+    for (let index in this.context.__args) {
+      let argStr     = this.context.__args[index];
+      let argName    = argStr.match(/(\w+)/)[0];
       let isRequired = /</.test(argStr);
       let isOptional = /\[/.test(argStr);
       let argValue   = argvArgs.shift();
 
       if (argValue) {
-        command.argv[argName] = argValue;
-        command.argv._.push(argValue);
+        command.args[argName] = argValue;
+        command.args._.push(argValue);
+      }
+
+      if (isRequired && !argValue) {
+        return Promise.reject({msg: ' '+argName+' Argument ['+index+'] is Required!', type:'err'});
       }
       command._argString = command._argString || '';
       command._argString += ' ' + argStr;
@@ -203,38 +206,22 @@ export default class Command{
       let flag = this.context._flags[index].parse();
       command.flags[flag.name]   = flag;
       command.options[flag.name] = flag.value;
-      command.argv[flag.name] = flag.value;
     }
 
-    // use or add canExecute
-    command.canExecute = (command.canExecute && typeof command.canExecute === 'function')
-           ? command.canExecute
-           : function(c){return true;};
+    let DynamicPrototypes = {
+        canExecute  : function( ){return true;}
+      , beforeAction: function(c){return c;}
+      , action      : function(c){return c;}
+      , afterAction : function(c){return c;}
+      , onError     : this._onError
+      , help        : this._help
+    };
 
-    // use or add beforeAction
-    command.beforeAction = (command.beforeAction && typeof command.beforeAction === 'function')
-           ? command.beforeAction
-           : function(c){return c;};
-
-    // use or add afterAction
-    command.afterAction = (command.afterAction && typeof command.afterAction === 'function')
-           ? command.afterAction
-           : function(c){return c;};
-
-    // use or add action
-    command.action = (command.action && typeof command.action === 'function')
-           ? command.action
-           : function(c){return c;};
-
-    // use or add help
-    command.help = (command.help && typeof command.help === 'function')
-           ? command.help
-           : this._help;
-
-    // use or add onError
-    command.onError = (command.onError && typeof command.onError === 'function')
-           ? command.onError
-           : function(c){return console.error(c);};
+    for (let PrototypeName in DynamicPrototypes) {
+      if (!command[PrototypeName] || typeof command[PrototypeName] !== 'function') {
+        command[PrototypeName] = DynamicPrototypes[PrototypeName];
+      }
+    }
 
     return command;
   }
@@ -271,6 +258,16 @@ export default class Command{
       log(this.commandId.green +' '+option._flags.cyan + padding, option.required ? ('(','required'.red+')') : ('('+'optional'.green+')'), option.description);
     }
     log();
+  }
+
+  _onError(args, options, issue) {
+    if (issue.msg) {
+      console.error(issue.msg);
+      console.error(issue.error || issue.Error);
+    } else {
+      console.error(issue);
+      throw issue;
+    }
   }
 
 

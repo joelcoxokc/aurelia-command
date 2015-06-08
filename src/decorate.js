@@ -25,10 +25,9 @@ export function alias(str) {
   };
 }
 
-export function arg(str) {
+export function args(...argNames) {
   return function(ClassConstruction) {
-    ClassConstruction._args = ClassConstruction._args || [];
-    ClassConstruction._args.push(str);
+    ClassConstruction.__args = ClassConstruction.__args || argNames;
     return ClassConstruction;
   };
 }

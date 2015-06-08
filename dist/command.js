@@ -75,7 +75,7 @@ var Command = (function () {
     value: function createContext(ClassConstruction, commandId) {
 
       ClassConstruction.commandId = ClassConstruction.commandId || commandId;
-      ClassConstruction.argv = ClassConstruction.argv || { _: [] };
+      ClassConstruction.argv = ClassConstruction.argv || argv;
       ClassConstruction._flags = ClassConstruction._flags || [];
       ClassConstruction._args = ClassConstruction._args || argv._.slice(1) || [];
       ClassConstruction.options = ClassConstruction.options || {};
@@ -109,15 +109,17 @@ var Command = (function () {
       return this;
     }
   }, {
-    key: 'arg',
+    key: 'args',
 
     /*
         Set args on the ClassConstruction.__args for later parsing
      */
-    value: function arg(str) {
-      var name = str.match(/(\w+)/)[0];
-      this.context.__args = this.context.__args || {};
-      this.context.__args[name] = str;
+    value: function args() {
+      for (var _len2 = arguments.length, _args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        _args[_key2] = arguments[_key2];
+      }
+
+      this.context.__args = this.context.__args || _args;
       return this;
     }
   }, {
@@ -159,15 +161,15 @@ var Command = (function () {
       var instance = this.parse();
 
       return _bluebird2['default'].resolve().then(function () {
-        return instance.canExecute.call(instance, instance.argv, instance.options);
+        return instance.canExecute.call(instance, instance.args, instance.options);
       }).then(function (canExecute) {
-        if (canExecute) return instance.beforeAction.call(instance, instance.argv, instance.options);
+        if (canExecute) return instance.beforeAction.call(instance, instance.args, instance.options);
       }).then(function (before) {
-        return instance.action.call(instance, instance.argv, instance.options, before);
+        return instance.action.call(instance, instance.args, instance.options, before);
       }).then(function (result) {
-        return instance.afterAction.call(instance, instance.argv, instance.options, result);
+        return instance.afterAction.call(instance, instance.args, instance.options, result);
       })['catch'](function (result) {
-        return instance.onError.call(instance, instance.argv, instance.options, result);
+        return instance.onError.call(instance, instance.args, instance.options, result);
       });
     }
   }, {
@@ -205,23 +207,28 @@ var Command = (function () {
       command.options = {};
       command.flags = {};
       command.argv = this.context.argv;
-      command.args = {};
+      command.args = { _: [] };
+
+      command.argv._.shift();
 
       // Apply args
 
-      var __args = this.context._args;
-      var argvArgs = argv._.slice(1);
+      var argvArgs = this.context._args;
 
-      for (var index in __args) {
-        var argStr = __args[index];
+      for (var index in this.context.__args) {
+        var argStr = this.context.__args[index];
         var argName = argStr.match(/(\w+)/)[0];
         var isRequired = /</.test(argStr);
         var isOptional = /\[/.test(argStr);
         var argValue = argvArgs.shift();
 
         if (argValue) {
-          command.argv[argName] = argValue;
-          command.argv._.push(argValue);
+          command.args[argName] = argValue;
+          command.args._.push(argValue);
+        }
+
+        if (isRequired && !argValue) {
+          return _bluebird2['default'].reject({ msg: ' ' + argName + ' Argument [' + index + '] is Required!', type: 'err' });
         }
         command._argString = command._argString || '';
         command._argString += ' ' + argStr;
@@ -232,36 +239,30 @@ var Command = (function () {
         var flag = this.context._flags[index].parse();
         command.flags[flag.name] = flag;
         command.options[flag.name] = flag.value;
-        command.argv[flag.name] = flag.value;
       }
 
-      // use or add canExecute
-      command.canExecute = command.canExecute && typeof command.canExecute === 'function' ? command.canExecute : function (c) {
-        return true;
+      var DynamicPrototypes = {
+        canExecute: function canExecute() {
+          return true;
+        },
+        beforeAction: function beforeAction(c) {
+          return c;
+        },
+        action: function action(c) {
+          return c;
+        },
+        afterAction: function afterAction(c) {
+          return c;
+        },
+        onError: this._onError,
+        help: this._help
       };
 
-      // use or add beforeAction
-      command.beforeAction = command.beforeAction && typeof command.beforeAction === 'function' ? command.beforeAction : function (c) {
-        return c;
-      };
-
-      // use or add afterAction
-      command.afterAction = command.afterAction && typeof command.afterAction === 'function' ? command.afterAction : function (c) {
-        return c;
-      };
-
-      // use or add action
-      command.action = command.action && typeof command.action === 'function' ? command.action : function (c) {
-        return c;
-      };
-
-      // use or add help
-      command.help = command.help && typeof command.help === 'function' ? command.help : this._help;
-
-      // use or add onError
-      command.onError = command.onError && typeof command.onError === 'function' ? command.onError : function (c) {
-        return console.error(c);
-      };
+      for (var PrototypeName in DynamicPrototypes) {
+        if (!command[PrototypeName] || typeof command[PrototypeName] !== 'function') {
+          command[PrototypeName] = DynamicPrototypes[PrototypeName];
+        }
+      }
 
       return command;
     }
@@ -300,6 +301,17 @@ var Command = (function () {
         log(this.commandId.green + ' ' + option._flags.cyan + padding, option.required ? ('(', 'required'.red + ')') : '(' + 'optional'.green + ')', option.description);
       }
       log();
+    }
+  }, {
+    key: '_onError',
+    value: function _onError(args, options, issue) {
+      if (issue.msg) {
+        console.error(issue.msg);
+        console.error(issue.error || issue.Error);
+      } else {
+        console.error(issue);
+        throw issue;
+      }
     }
   }, {
     key: 'addPrototype',

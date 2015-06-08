@@ -6,7 +6,7 @@ Object.defineProperty(exports, '__esModule', {
 exports.command = command;
 exports.option = option;
 exports.alias = alias;
-exports.arg = arg;
+exports.args = args;
 exports.description = description;
 exports.instance = instance;
 
@@ -48,10 +48,13 @@ function alias(str) {
   };
 }
 
-function arg(str) {
+function args() {
+  for (var _len2 = arguments.length, argNames = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+    argNames[_key2] = arguments[_key2];
+  }
+
   return function (ClassConstruction) {
-    ClassConstruction._args = ClassConstruction._args || [];
-    ClassConstruction._args.push(str);
+    ClassConstruction.__args = ClassConstruction.__args || argNames;
     return ClassConstruction;
   };
 }
@@ -64,8 +67,8 @@ function description(str) {
 }
 
 function instance() {
-  for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-    args[_key2] = arguments[_key2];
+  for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+    args[_key3] = arguments[_key3];
   }
 
   return function (ClassConstruction) {

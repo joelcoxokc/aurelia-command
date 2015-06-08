@@ -25,10 +25,11 @@ class Program extends EventEmitter{
     return command;
   }
 
-  register(Construction) {
+  register(Construction, ...inject) {
     if (Construction.register && typeof Construction.register === 'function') {
       Construction.register(this.command.bind(this, Construction));
     }
+    Construction._inject = inject;
     this.aliases[Construction.alias] = Construction.commandId;
   }
 
